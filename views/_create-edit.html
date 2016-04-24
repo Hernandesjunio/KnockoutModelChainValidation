@@ -1,0 +1,103 @@
+<div id="ModalVerDadosPessoa" class="modal fade in" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true" style="">
+
+    <div class="modal-dialog modal-lg" id="dados">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3 class="modal-title" id="myModalLabel">
+                    <i class="fa fa-search"></i>&nbsp;Detalhes da Pessoa
+                </h3>
+            </div>
+            <div class="modal-body widget" data-bind="with:$root.Pessoa">
+                <div class="row">
+                    <div class="col-xs-12">
+
+                        <div class="row">
+                            <label class="col-xs-2 control-label">Nome</label>
+                            <div class="col-xs-4"><input type="text" maxlength="10" data-bind="value:Nome" class="form-control" /></div>
+
+                                <label class="col-xs-2 control-label">Email</label>
+                            <div class="col-xs-4"><input type="text" maxlength="20" data-bind="value:Email" class="form-control" /></div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <br>
+                                <button  data-bind="click:$root.novoEndereco" class="btn btn-primary btn-sm pull-right">
+                                    <i class="fa fa-plus"></i>
+                                    &nbsp;Endereço
+                                </button>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-xs-12">
+                                <!--ko if:Enderecos().length > 0-->
+                                <fieldset>
+                                    <legend>Lista de Endereços</legend>
+
+                                    <div data-bind="foreach:Enderecos" >
+
+                                        <div class="row" data-bind="">
+                                            <label class="col-xs-2 control-label">Cep</label>
+                                            <div class="col-xs-4"><input type="text" data-bind="value:Cep" class="form-control" /></div>
+
+                                            <label class="col-xs-2 control-label">Endereco</label>
+                                            <div class="col-xs-4"><input type="text" data-bind="value:Endereco" class="form-control" /></div>
+                                        </div>
+                                        <div class="row" data-bind="">
+                                            <label class="col-xs-2 control-label">Numero</label>
+                                            <div class="col-xs-4"><input type="text" data-bind="value:Numero" class="form-control" /></div>
+
+                                            <label class="col-xs-2 control-label">Complemento</label>
+                                            <div class="col-xs-4"><input type="text" data-bind="value:Complemento" class="form-control" /></div>
+                                        </div>
+                                        <div class="row" data-bind="">
+                                            <label class="col-xs-2 control-label">Bairro</label>
+                                            <div class="col-xs-4"><input type="text" data-bind="value:Bairro" class="form-control" /></div>
+
+                                            <label class="col-xs-2 control-label">Cidade</label>
+                                            <div class="col-xs-4"><input type="text" data-bind="value:Cidade" class="form-control" /></div>
+                                        </div>
+                                        <div class="row" data-bind="">
+                                            <label class="col-xs-2 control-label">UF</label>
+                                            <div class="col-xs-4"><input type="text" data-bind="value:UF" class="form-control" /></div>
+                                            <div class="col-xs-6">
+                                                <button type="button"  data-bind="click:$root.removerEndereco" class="btn btn-danger btn-sm pull-right">
+                                                    <i class="fa fa-trash"></i>
+                                                    &nbsp;Remover
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <br>
+                                    </div>
+                                </fieldset>
+                                <!--/ko-->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bind="click:$root.gravarAlteracoes, enable: $root.Pessoa().isValid()">
+                    <i class="fa fa-check"></i>
+                    &nbsp;Gravar
+                </button>
+
+                <button type="button" class="btn btn-default" data-dismiss="modal"><i class="fa fa-times"></i>&nbsp;Fechar</button>
+            </div>
+        </div>
+    </div>
+</div>
+<script type="text/javascript">
+
+    require(['view-model-dependencies'],function() {
+        configMain();
+        require(['pessoa-create-edit-view-model','ko-fn-default-value','ko-fn-type-of'],function(a,b,c,d) {
+            domReady(function () {
+                var model = new PessoaCreateEditViewModel();
+
+                ko.applyBindings (model,$("#ModalVerDadosPessoa")[0]);
+            });
+        });
+    });
+
+</script>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <link href="../css/bootstrap.css" rel="stylesheet" >
+    <link href="../css/plugins/toastr.css" rel="stylesheet" >
+    <link href="../css/font-awesome.css" rel="stylesheet" >
+
+    <script type="text/javascript" src="../Scripts/vendor/bundle-vendors.js"></script>
+    <script type="text/javascript" src="../Scripts/vendor/initial-configurations.js"></script>
+    <script type="text/javascript" src="../Scripts/vendor/requirejs/require.js" data-main="../Scripts/vendor/requirejs/main.js" ></script>
+    <script type="text/javascript" src="../Scripts/vendor/requirejs/main.js"></script>
+
+</head>
+<body>
+<div class="container" id="list">
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="/index.html">Brand</a>
+            </div>
+
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+                <ul class="nav navbar-nav">
+                    <li class="active"><a href="#">Cadastro de pessoas <span class="sr-only">(current)</span></a></li>
+                </ul>
+
+
+            </div>
+        </div>
+    </nav>
+    <div class="page-header">
+        <div class="row">
+            <div class="col-xs-12">
+
+                <p class="lead">Cadastro de Pessoas</p>
+
+                <div style="display:none" class="alert alert-dismissible alert-warning" data-bind="visible:$root.LstPessoas().length == 0">
+                    <p>Não há pessoas cadastradas.</p>
+                </div>
+
+                <table class="table table-striped" style="display:none" data-bind="visible:$root.LstPessoas().length > 0">
+                    <thead>
+                    <tr>
+                        <td>PessoaID</td>
+                        <td>Nome</td>
+                    </tr>
+                    </thead>
+                    <tbody data-bind="foreach:$root.LstPessoas()">
+                    <tr>
+                        <td data-bind="text:PessoaID" class="col-xs-2"></td>
+                        <td data-bind="text:Nome" class="col-xs-9"></td>
+                        <td data-bind="" class="col-xs-1">
+                            <a href="#" data-bind="click:$root.editarPessoa"><i class="fa fa-lg fa-edit"></i></a>
+                            &nbsp;
+                            <a href="#" data-bind="click:$root.excluirPessoa"><i class="fa fa-lg fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+        </div>
+        </div>
+        <div class="row">
+            <div class="col-xs-12">
+                <button type="button" data-bind="click:novaPessoa" class="btn btn-primary btn-sm">
+                    <i class="fa fa-plus"></i>
+                    &nbsp;Nova Pessoa
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="result">
+
+</div>
+
+
+<script type="text/javascript">
+//    require(['view-model-dependencies'],function() {
+//        configMain();
+console.log('ddd');
+    require(['pessoa-list-view-model'],function(model) {
+
+
+        domReady(function () {
+           var model = new PessoaListViewModel();
+           ko.applyBindings (model,$("#list")[0]);
+        });
+    });
+   // });
+</script>
+</body>
+</html>

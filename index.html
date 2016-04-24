@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+
+    <link href="css/bootstrap.css" rel="stylesheet" >
+    <link href="css/plugins/toastr.css" rel="stylesheet" >
+    <link href="css/font-awesome.css" rel="stylesheet" >
+
+    <script type="text/javascript" src="Scripts/vendor/bundle-vendors.js"></script>
+
+    <script type="text/javascript" src="Scripts/vendor/initial-configurations.js"></script>
+    <script type="text/javascript" src="Scripts/vendor/requirejs/require.js" data-main="../Scripts/vendor/requirejs/main.js" ></script>
+    <script type="text/javascript" src="Scripts/vendor/requirejs/main.js"></script>
+
+</head>
+<body>
+<div class="container" id="list">
+
+    <div class="page-header">
+        <div class="jumbotron">
+            <h1>Knockout+AMD+DesignPatterns</h1>
+            <p>Esta é uma simples aplicação exemplo de como utilizar classe base padrão para derivar todos os 'Models' do Knockout.
+            Pois possui alta flexibilidade para realização de testes unitários de seus componentes: ViewModels, Models e Controllers.</p>
+            <p>O conceito da utilização de encapsulamento à utilização de componentes de terceiros permite a utilização de mock para prover dados para teste.</p>
+
+            <p><a href="views/cadastro-de-pessoas.html" class="btn btn-primary btn-lg">Veja o Exemplo</a></p>
+        </div>
+    </div>
+</div>
+<div id="result">
+
+</div>
+
+<script type="text/javascript">
+//    require(['view-model-dependencies'],function(p) {
+//        configMain();
+        console.log('asdfasfasdf');
+        require(['endereco-base-model'],function(p) {
+            //console.log(p);
+////
+            domReady(function () {
+                var model = new PessoaListViewModel();
+                ko.applyBindings (model,$("#list")[0]);
+            });
+        });
+    //});
+</script>
+</body>
+</html>
