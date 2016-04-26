@@ -116,7 +116,7 @@ function BaseModel(){
     //Atribui propriedades no objeto utilizando apenas um objeto tipado ou não
     self.assignProperties=function(model){
         for(var propertyName in model){
-            if(ko.isWriteableObservable(this[propertyName])){
+            if(ko.isWriteableObservable(this[propertyName]) && ko.utils.unwrapObservable(model[propertyName])) {
                 this[propertyName](ko.utils.unwrapObservable(model[propertyName]));
             }
         }
