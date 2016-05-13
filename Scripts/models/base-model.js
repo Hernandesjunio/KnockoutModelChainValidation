@@ -1,11 +1,10 @@
 /**
- * Created by Hernandes on 20/04/2016.
- */
-/**
+ * @class
  * @summary classe base para criação de models em javascript, utilizada para facilitar alguns comportamentos padrões
  */
-function BaseModel(){
-    var self = this;   
+function BusinessBaseModel() {
+    var self = this;
+   
     //devera ser redefinida na classe derivada para realizar uma validacao customizada
     self.isValidCustom = function () { return true; };
     //Estado do objeto que está sendo validado
@@ -112,8 +111,8 @@ function BaseModel(){
                                         analisarTodasPropriedadesIsValid(this.b);
                                         //analista todas as propriedades dos detalhes
                                         analisarTodasPropriedadesIsValid(this.a[i]);
-                                        if (this.a[i].isValid() == false) {
-                                            this.m.isValid(false);
+                                        if (this.a[i].isValid() == false) {                                            
+                                            this.a[i].isValid(false);
                                             this.b.isValid(false);
                                             break;
                                         }
@@ -134,8 +133,8 @@ function BaseModel(){
     self.assignProperties = function (model) {
         model = ko.utils.unwrapObservable(model);
 
-        for (var propertyName in model) {
-            if (ko.isWriteableObservable(this[propertyName]) && ko.utils.unwrapObservable(model[propertyName])) {
+        for (var propertyName in model) {                        
+            if (ko.isWriteableObservable(this[propertyName]) && ko.utils.unwrapObservable(model[propertyName]) != undefined) {
                 this[propertyName](ko.utils.unwrapObservable(model[propertyName]));
             }
         }
@@ -159,7 +158,3 @@ function BaseModel(){
         return c;
     }
 }
-
-define('base-model',function() {
-    return BaseModel;
-});
