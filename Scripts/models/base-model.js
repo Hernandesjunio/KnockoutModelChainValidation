@@ -4,7 +4,7 @@
  */
 function BusinessBaseModel() {
     var self = this;
-   
+
     //devera ser redefinida na classe derivada para realizar uma validacao customizada
     self.isValidCustom = function () { return true; };
     //Estado do objeto que está sendo validado
@@ -69,7 +69,7 @@ function BusinessBaseModel() {
                 //ctx[propertyName]() instanceof Array
                 if (ctx[propertyName]() && ctx[propertyName]().isValid != undefined) {
                     if (ko.isWriteableObservable(ctx[propertyName]().isValid))
-                    subscribeIsValid(ctx[propertyName]().isValid);
+                        subscribeIsValid(ctx[propertyName]().isValid);
                 }
                 else
                     if (ctx[propertyName]() instanceof Array) {
@@ -111,7 +111,7 @@ function BusinessBaseModel() {
                                         analisarTodasPropriedadesIsValid(this.b);
                                         //analista todas as propriedades dos detalhes
                                         analisarTodasPropriedadesIsValid(this.a[i]);
-                                        if (this.a[i].isValid() == false) {                                            
+                                        if (this.a[i].isValid() == false) {
                                             this.a[i].isValid(false);
                                             this.b.isValid(false);
                                             break;
@@ -130,16 +130,20 @@ function BusinessBaseModel() {
         analisarTodasPropriedadesIsValid(this);
     }
     //Atribui propriedades no objeto utilizando apenas um objeto tipado ou não
-    self.assignProperties = function (model) {
-        model = ko.utils.unwrapObservable(model);
+    self.assignProperties = function (model, callback) {
+        model = ko.toJS(model);
 
-        for (var propertyName in model) {                        
+        for (var propertyName in model) {
             if (ko.isWriteableObservable(this[propertyName]) && ko.utils.unwrapObservable(model[propertyName]) != undefined) {
                 this[propertyName](ko.utils.unwrapObservable(model[propertyName]));
             }
         }
 
         this.registerValidations();
+
+        if (callback)
+            callback(this);
+
         return this;
     }
     //Limpa as propridades observáveis escrevíveis do objeto
@@ -151,6 +155,21 @@ function BusinessBaseModel() {
         }
         return this;
     }
+    //Habilita o rastreamento de alteraçõs no modelo
+    self.trackChangesModel = function (model) {
+        model = ko.utils.unwrapObservable(model);
+        if (model) {
+            for (var i = 0; i < model.length; i++) {
+                var breakEditing = false;
+
+                if (!breakEditing) {
+                    ko.editable(model[i]);
+                    model[i].beginEdit();
+                    breakEditing = true;
+                }
+            }
+        }
+    }
 
     self.clone = function () {
         var c = new self.constructor();
@@ -158,3 +177,7 @@ function BusinessBaseModel() {
         return c;
     }
 }
+
+define('base-model', function () {
+    return BusinessBaseModel;
+});
