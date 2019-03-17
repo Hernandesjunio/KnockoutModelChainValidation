@@ -19,7 +19,7 @@ function BusinessBaseModel() {
         _disposeArraySubscribers(_complexSubscribe);
         _disposeArraySubscribers(_arraySubscribe);
         _disposeArraySubscribers(_subscriptionsPropertiesObservable);
-        _disposeArraySubscribers(_allPropertiesWritable);
+        _allPropertiesWritable.splice(0);
     }
 
     self.dispose = function () {
@@ -83,9 +83,7 @@ function BusinessBaseModel() {
     //Sempre deverá ser chamado quando tiver um novo objeto associado
     self.registerValidations = function () {
 
-        _disposeArraySubscribers(_arraySubscribe);
-        _disposeArraySubscribers(_complexSubscribe);
-        _disposeArraySubscribers(_subscriptionsPropertiesObservable)
+        this.disposeSubscribers();
 
         //somente se inscreve caso ainda não tenha feito
         if (_subscriptionsPropertiesObservable.length == 0) {
@@ -163,32 +161,33 @@ function BusinessBaseModel() {
     function _subscribeIsValidNotify(instanceIsValid, parentInstance, arraySubscribe, allPropertiesWritable) {
         if (instanceIsValid !== undefined) {
             if (ko.isWriteableObservable(instanceIsValid.isValid) && !instanceIsValid._destroy) {
-                _subscribeIsValid(instanceIsValid.isValid, parentInstance, arraySubscribe, allPropertiesWritable)
-                instanceIsValid.isValid.notifySubscribers(instanceIsValid.isValid());
+                _subscribeIsValid(instanceIsValid.isValid, parentInstance, arraySubscribe, allPropertiesWritable)                
+                instanceIsValid.registerValidations();
             }
         } else {
             this.parentInstance.registerValidations();
         }
     }
-    
+
     function _isPropertyWriteableValidatable(propertyObservable) {
         //all properties subscribable
-        var result = ko.isObservable(propertyObservable) && propertyObservable.isValid !== undefined && propertyObservable() instanceof Array === false;
+        //var result = ko.isObservable(propertyObservable) && propertyObservable.isValid !== undefined && propertyObservable() instanceof Array === false;
+        var result = ko.isObservable(propertyObservable) && propertyObservable.isValid !== undefined;
         return result;
     }
-    
+
     function _disposeArraySubscribers(objArray) {
         for (var i = 0; i < objArray.length; i++) {
             objArray[i].dispose();
         }
         objArray.splice(0);
     }
-    
+
     function _isWriteaableObservableArray(propArray) {
         var result = ko.isWriteableObservable(propArray) === true && ko.utils.unwrapObservable(propArray) instanceof Array;
         return result;
     }
-    
+
     function _checkIsValid(objInstance, _allPropertiesWritable) {
         var _isValid = true;
         if (!objInstance._destroy) {
@@ -200,10 +199,10 @@ function BusinessBaseModel() {
                 }
             }
         }
-    
+
         objInstance.isValid(_isValid);
     }
-    
+
     function _subscribeIsValid(propertyObservableIsValid, _instanceReceiver, _arrayPush, _allPropertiesWritable) {
         if (ko.isWriteableObservable(propertyObservableIsValid) === true) {
             var sub = propertyObservableIsValid.subscribe(function (value) {
@@ -216,12 +215,12 @@ function BusinessBaseModel() {
             _arrayPush.push(sub);
         }
     }
-    
+
     function _isComplexProperty(_property) {
         var result = ko.isWriteableObservable(_property) === true && _property.type !== undefined && _property() instanceof Array == false;
         return result;
     }
-    
+
     function _checkComplexProperty(_instanceReceiver, _arrayPush, _allPropertiesWritable) {
         for (var propName in _instanceReceiver) {
             var prop = _instanceReceiver[propName];
@@ -231,7 +230,7 @@ function BusinessBaseModel() {
             }
         }
     }
-    
+
     function _checkArrayProperty(_array, _instanceReceiver, _arraySubscribe, _allPropertiesWritable) {
         _array = ko.utils.unwrapObservable(_array);
         for (var i = 0; i < _array.length; i++) {
@@ -240,10 +239,14 @@ function BusinessBaseModel() {
                 //subscriptions all item list
                 _subscribeIsValid(itemPropertyComplex.isValid, _instanceReceiver, _arraySubscribe, _allPropertiesWritable);
                 _checkComplexProperty(itemPropertyComplex, _arraySubscribe, _allPropertiesWritable, _checkIsValid);
+                itemPropertyComplex.isValid.notifySubscribers(itemPropertyComplex.isValid());
+                if (itemPropertyComplex.isValid() === false)
+                    break;
             }
         }
-    }    
+    }
 }
+
 define('base-model', function () {
     return BusinessBaseModel;
 });
