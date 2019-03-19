@@ -10,10 +10,16 @@ function BusinessBaseModel() {
     var _subscriptionsPropertiesObservable = [];
     var _allPropertiesWritable = [];
 
+    self.getAllPropertiesWritable = function () {
+        return _allPropertiesWritable;
+    }
+
     //devera ser redefinida na classe derivada para realizar uma validacao customizada
     self.isValidCustom = function () { return true; };
     //Estado do objeto que está sendo validado
     self.isValid = ko.observable(true);
+    //Define se o objeto será ou não validado
+    self.isValidatable = ko.observable(true).defaultValue(true);
 
     self.disposeSubscribers = function () {
         _disposeArraySubscribers(_complexSubscribe);
@@ -86,7 +92,12 @@ function BusinessBaseModel() {
         this.disposeSubscribers();
 
         //somente se inscreve caso ainda não tenha feito
-        if (_subscriptionsPropertiesObservable.length == 0) {
+        if (_subscriptionsPropertiesObservable.length === 0) {
+            //
+            _arraySubscribe.push(this.isValidatable.subscribe(function (value) {
+                _checkIsValid(this.objInstance, this.allPropertiesWritable);
+            }.bind({ objInstance: this, allPropertiesWritable: _allPropertiesWritable })));
+
             for (var propName in this) {
                 var prop = this[propName];
 
@@ -98,7 +109,7 @@ function BusinessBaseModel() {
                 if (_isComplexProperty(prop)) {
                     //if change property to undefined register validations                     
                     var sub = prop.subscribe(function (value) {
-                        if (this.propertyObservable() !== undefined) {
+                        if (_isUndefinedValue(this.propertyObservable()) === false) {
                             _subscribeIsValidNotify(this.propertyObservable(), this.parentInstance, this.arraySubscribe, this.allPropertiesWritable);
                         } else {
                             this.parentInstance.registerValidations();
@@ -115,7 +126,7 @@ function BusinessBaseModel() {
                                 var obj = this.propertyObservable()[i];
                                 _subscribeIsValidNotify(obj, this.parentInstance, this.arraySubscribe, this.allPropertiesWritable);
                             }
-                        } else if (obj !== undefined) {
+                        } else if (_isUndefinedValue(obj) === false) {
                             _subscribeIsValidNotify(obj, this.parentInstance, this.arraySubscribe, this.allPropertiesWritable);
                         }
                     }.bind({ parentInstance: this, propertyObservable: prop, propertyName: propName, arraySubscribe: _arraySubscribe, allPropertiesWritable: _allPropertiesWritable }));
@@ -145,34 +156,39 @@ function BusinessBaseModel() {
 
         //subscribe complex property
         _checkComplexProperty(this, _complexSubscribe, _allPropertiesWritable);
+        _checkArrayProperties(this, _arraySubscribe, _allPropertiesWritable);
+        
+        //primeira validação
+        _checkIsValid(this, _allPropertiesWritable, _allPropertiesWritable);
+    }
 
-        //subscription validation complex property and array
-        for (var propName in this) {
-            var propArray = this[propName];
+    function _checkArrayProperties(object, _arraySubscribe, _allPropertiesWritable) {
+        for (var propName in object) {
+            var propArray = object[propName];
             if (_isWriteaableObservableArray(propArray)) {
-                _checkArrayProperty(propArray, this, _arraySubscribe, _allPropertiesWritable)
+                _checkArrayProperty(propArray, object, _arraySubscribe, _allPropertiesWritable)
             }
         }
+    }
 
-        //primeira validação
-        _checkIsValid(this, _allPropertiesWritable);
+    function _isUndefinedValue(value) {
+        return value === undefined || value === 'undefined' || value === null;
     }
 
     function _subscribeIsValidNotify(instanceIsValid, parentInstance, arraySubscribe, allPropertiesWritable) {
-        if (instanceIsValid !== undefined) {
+        if (_isUndefinedValue(instanceIsValid) === false && _isUndefinedValue(instanceIsValid.isValid) === false) {
             if (ko.isWriteableObservable(instanceIsValid.isValid) && !instanceIsValid._destroy) {
-                _subscribeIsValid(instanceIsValid.isValid, parentInstance, arraySubscribe, allPropertiesWritable)                
+                _subscribeIsValid(instanceIsValid.isValid, parentInstance, arraySubscribe, allPropertiesWritable);
                 instanceIsValid.registerValidations();
             }
-        } else {
-            this.parentInstance.registerValidations();
+        } else if (_isUndefinedValue(parentInstance) === false) {
+            parentInstance.registerValidations();
         }
     }
 
     function _isPropertyWriteableValidatable(propertyObservable) {
-        //all properties subscribable
-        //var result = ko.isObservable(propertyObservable) && propertyObservable.isValid !== undefined && propertyObservable() instanceof Array === false;
-        var result = ko.isObservable(propertyObservable) && propertyObservable.isValid !== undefined;
+        //all properties subscribable        
+        var result = ko.isObservable(propertyObservable) && _isUndefinedValue(propertyObservable.isValid) === false;
         return result;
     }
 
@@ -190,17 +206,16 @@ function BusinessBaseModel() {
 
     function _checkIsValid(objInstance, _allPropertiesWritable) {
         var _isValid = true;
-        if (!objInstance._destroy) {
+        if (objInstance.isValidatable() === true && !objInstance._destroy) {
             for (var index = 0; index < _allPropertiesWritable.length; index++) {
                 var p = _allPropertiesWritable[index];
-                if (p.propertyObservable.isValid() === false) {
+                if (_isUndefinedValue(p.propertyObservable.isValidCustom) === false && p.propertyObservable.isValidCustom() === false || p.propertyObservable.isValid() === false) {
                     _isValid = false;
                     break;
                 }
             }
         }
-
-        objInstance.isValid(_isValid);
+        objInstance.isValid(_isValid);        
     }
 
     function _subscribeIsValid(propertyObservableIsValid, _instanceReceiver, _arrayPush, _allPropertiesWritable) {
@@ -208,7 +223,7 @@ function BusinessBaseModel() {
             var sub = propertyObservableIsValid.subscribe(function (value) {
                 if (value === false) {
                     this.instanceReceiver.isValid(false);
-                } else if (value !== undefined) {
+                } else if (_isUndefinedValue(value) === false) {
                     _checkIsValid(this.instanceReceiver, this.allPropertiesWritable);
                 }
             }.bind({ instanceReceiver: _instanceReceiver, allPropertiesWritable: _allPropertiesWritable }));
@@ -217,14 +232,14 @@ function BusinessBaseModel() {
     }
 
     function _isComplexProperty(_property) {
-        var result = ko.isWriteableObservable(_property) === true && _property.type !== undefined && _property() instanceof Array == false;
+        var result = ko.isWriteableObservable(_property) === true && _isUndefinedValue(_property.type) === false && _property() instanceof Array === false;
         return result;
     }
 
     function _checkComplexProperty(_instanceReceiver, _arrayPush, _allPropertiesWritable) {
         for (var propName in _instanceReceiver) {
-            var prop = _instanceReceiver[propName];
-            if (_isComplexProperty(prop) && prop() !== undefined && ko.isWriteableObservable(prop().isValid) === true) {
+            var prop = _instanceReceiver[propName];            
+            if (_isComplexProperty(prop) && _isUndefinedValue(prop()) === false && ko.isWriteableObservable(prop().isValid) === true) {
                 _subscribeIsValid(prop().isValid, _instanceReceiver, _arrayPush, _allPropertiesWritable);
                 prop().isValid.notifySubscribers(prop().isValid());
             }
@@ -236,17 +251,11 @@ function BusinessBaseModel() {
         for (var i = 0; i < _array.length; i++) {
             var itemPropertyComplex = _array[i];
             if (ko.isWriteableObservable(itemPropertyComplex.isValid) === true) {
-                //subscriptions all item list
                 _subscribeIsValid(itemPropertyComplex.isValid, _instanceReceiver, _arraySubscribe, _allPropertiesWritable);
-                _checkComplexProperty(itemPropertyComplex, _arraySubscribe, _allPropertiesWritable, _checkIsValid);
-                itemPropertyComplex.isValid.notifySubscribers(itemPropertyComplex.isValid());
-                if (itemPropertyComplex.isValid() === false)
-                    break;
-            }
+                _checkComplexProperty(itemPropertyComplex, _arraySubscribe, itemPropertyComplex.getAllPropertiesWritable(), _checkIsValid);
+                _checkArrayProperties(itemPropertyComplex, _arraySubscribe, _allPropertiesWritable);
+            }            
         }
     }
 }
-
-define('base-model', function () {
-    return BusinessBaseModel;
-});
+;
