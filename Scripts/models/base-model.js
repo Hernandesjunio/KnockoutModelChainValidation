@@ -14,11 +14,11 @@ function BusinessBaseModel() {
         return _allPropertiesWritable;
     }
 
-    //devera ser redefinida na classe derivada para realizar uma validacao customizada
+    //custom validation of derived class
     self.isValidCustom = function () { return true; };
-    //Estado do objeto que está sendo validado
+    //state of object
     self.isValid = ko.observable(true);
-    //Define se o objeto será ou não validado
+    //define if object is validatable
     self.isValidatable = ko.observable(true).defaultValue(true);
 
     self.disposeSubscribers = function () {
@@ -32,7 +32,7 @@ function BusinessBaseModel() {
         self.disposeSubscribers();
     }
 
-    //Atribui propriedades no objeto utilizando apenas um objeto tipado ou não
+    //patch value to model with callback
     self.assignProperties = function (model, callback) {
         model = ko.utils.unwrapObservable(model);
 
@@ -49,7 +49,8 @@ function BusinessBaseModel() {
 
         return this;
     }
-    //Limpa as propridades observáveis escrevíveis do objeto
+    
+    //Clear all properties
     self.clearProperties = function () {
         for (var propertyName in this) {
             if (ko.isWriteableObservable(this[propertyName]) && self.isValid != this[propertyName]) {
@@ -61,7 +62,8 @@ function BusinessBaseModel() {
         }
         return this;
     }
-    //Habilita o rastreamento de alteraçõs no modelo
+    
+    //Enable trackchanges model
     self.trackChangesModel = function (model) {
         model = ko.utils.unwrapObservable(model);
         if (model) {
@@ -76,24 +78,19 @@ function BusinessBaseModel() {
             }
         }
     }
-
+    //return clone of this model
     self.clone = function () {
         var c = new self.constructor();
         c.assignProperties(this);
         return c;
     }
 
-
-
-    //Responsável por realizar a cadeira de validação entre os objetos e suas propriedades complexas
-    //Sempre deverá ser chamado quando tiver um novo objeto associado
+    //Responsability to chain validation
     self.registerValidations = function () {
-
-        this.disposeSubscribers();
-
-        //somente se inscreve caso ainda não tenha feito
-        if (_subscriptionsPropertiesObservable.length === 0) {
-            //
+        //dispose subscribed
+        this.disposeSubscribers();        
+        
+        if (_subscriptionsPropertiesObservable.length === 0) {        
             _arraySubscribe.push(this.isValidatable.subscribe(function (value) {
                 _checkIsValid(this.objInstance, this.allPropertiesWritable);
             }.bind({ objInstance: this, allPropertiesWritable: _allPropertiesWritable })));
@@ -157,8 +154,8 @@ function BusinessBaseModel() {
         //subscribe complex property
         _checkComplexProperty(this, _complexSubscribe, _allPropertiesWritable);
         _checkArrayProperties(this, _arraySubscribe, _allPropertiesWritable);
-        
-        //primeira validação
+       
+        //first validation
         _checkIsValid(this, _allPropertiesWritable, _allPropertiesWritable);
     }
 
@@ -215,6 +212,7 @@ function BusinessBaseModel() {
                 }
             }
         }
+
         objInstance.isValid(_isValid);        
     }
 
